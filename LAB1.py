@@ -10,6 +10,8 @@ teoria - wszystkie filtry, opisac rozne kolorystyki,
 '''
 
 import cv2
+import numpy as np
+from matplotlib import pyplot as plt
 
 def Menu():
     print('Menu:')
@@ -20,14 +22,20 @@ def Menu():
 
 
 def ex1():
-    inFilename = 'kitty.jpg'
-    outFilename = 'kitty2.jpg'
+    inFilename = 'original_kitty.jpg'
+    outFilename = 'processed_kitty.jpg'
 
-    img = cv2.imread(inFilename)
+    original = cv2.imread(inFilename)
 
+    img = cv2.cvtColor(original, cv2.COLOR_BGR2RGB)
 
+    matrix = np.array([[-1, -1, -1],
+                       [-1,  8, -1],
+                       [-1, -1, -1]])
 
+    img = cv2.filter2D(img, -1, matrix)
     cv2.imwrite(outFilename, img)
+    print('Original image is %s and processed image is %s' % (inFilename, outFilename))
     return
 
 def ex2():
@@ -46,6 +54,8 @@ def ex5():
     print('zad5')
     return
 
+
+plt.rcParams["figure.figsize"] = (3, 4)
 
 while True:
     Menu()
