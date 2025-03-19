@@ -22,8 +22,8 @@ def Menu():
 
 
 def ex1():
-    inFilename = 'original_kitty.jpg'
-    outFilename = 'processed_kitty.jpg'
+    inFilename = 'lab1\\ex1\\original_kitty.jpg'
+    outFilename = 'lab1\\ex1\\processed_kitty.jpg'
 
     original = cv2.imread(inFilename)
 
@@ -39,7 +39,35 @@ def ex1():
     return
 
 def ex2():
-    print('zad2')
+    inFilename = 'lab1\\ex2\\original_kitty.jpg'
+    outFilename = 'lab1\\ex2\\processed_kitty.jpg'
+
+    original = cv2.imread(inFilename)
+
+    # Konwersja BGR -> RGB
+    original = cv2.cvtColor(original, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
+
+    # Macierz przekształcenia
+    transformation_matrix = np.array([[0.393, 0.769, 0.189],
+                                      [0.349, 0.689, 0.168],
+                                      [0.272, 0.534, 0.131]])
+
+    # Przekształcenie obrazu
+    processed_img = np.dot(original, transformation_matrix.T)
+
+    # Ograniczenie wartości do przedziału [0, 1]
+    processed_img = np.clip(processed_img, 0, 1)
+
+    # Konwersja z powrotem do skali 0-255
+    processed_img = (processed_img * 255).astype(np.uint8)
+
+    # Konwersja RGB -> BGR przed zapisem do pliku
+    processed_img = cv2.cvtColor(processed_img, cv2.COLOR_RGB2BGR)
+
+    # Zapis obrazu
+    cv2.imwrite(outFilename, processed_img)
+
+    print('Original image is %s and processed image is %s' % (inFilename, outFilename))
     return
 
 def ex3():
