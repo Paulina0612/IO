@@ -27,14 +27,20 @@ def ex1():
 
     original = cv2.imread(inFilename)
 
+    # Konwersja BGR -> RGB
     img = cv2.cvtColor(original, cv2.COLOR_BGR2RGB)
 
+    # Macierz przekształcenia
     matrix = np.array([[-1, -1, -1],
                        [-1,  8, -1],
                        [-1, -1, -1]])
 
+    # Przekształcenie obrazu
     img = cv2.filter2D(img, -1, matrix)
+    
+    # Zapis obrazu
     cv2.imwrite(outFilename, img)
+
     print('Original image is %s and processed image is %s' % (inFilename, outFilename))
     return
 
@@ -71,7 +77,35 @@ def ex2():
     return
 
 def ex3():
-    print('zad3')
+    inFilename = 'lab1\\ex3\\original_kitty.jpg'
+
+    original = cv2.imread(inFilename)
+
+    # Konwersja BGR -> RGB
+    original = cv2.cvtColor(original, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
+
+    # Macierz przekształcenia
+    add_matrix = [0, 128, 128]
+    transformation_matrix = np.array([[0.229, 0.587, 0.114],
+                                      [0.500, -0.418, -0.082],
+                                      [-0.168, -0.331, 0.500]])
+
+    # Przekształcenie obrazu
+    processed_img = np.dot(original, transformation_matrix.T)
+    processed_img += add_matrix
+
+    fig, ax = plt.subplots(2,2)
+    ax[0, 0].imshow(original)
+    ax[0, 0].set_xlabel("Oryginal")
+    ax[0, 1].imshow(processed_img[:,:,0], cmap="Greys_r")
+    ax[0, 1].set_xlabel("Y")
+    ax[1, 0].imshow(processed_img[:,:,2], cmap="Greys_r")
+    ax[1, 0].set_xlabel("Cb")
+    ax[1, 1].imshow(processed_img[:,:,1], cmap="Greys_r")
+    ax[1, 1].set_xlabel("Cr")
+
+    plt.show()
+
     return
 
 def ex4():
