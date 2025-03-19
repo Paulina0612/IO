@@ -41,7 +41,7 @@ def ex1():
     # Zapis obrazu
     cv2.imwrite(outFilename, img)
 
-    print('Original image is %s and processed image is %s' % (inFilename, outFilename))
+    print('Original original is %s and processed original is %s' % (inFilename, outFilename))
     return
 
 def ex2():
@@ -73,16 +73,12 @@ def ex2():
     # Zapis obrazu
     cv2.imwrite(outFilename, processed_img)
 
-    print('Original image is %s and processed image is %s' % (inFilename, outFilename))
+    print('Original original is %s and processed original is %s' % (inFilename, outFilename))
     return
 
-def ex3():
-    inFilename = 'lab1\\ex3\\original_kitty.jpg'
-
-    original = cv2.imread(inFilename)
-
+def get_YCbCr(img):
     # Konwersja BGR -> RGB
-    original = cv2.cvtColor(original, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
 
     # Macierz przekształcenia
     add_matrix = [0, 128, 128]
@@ -91,8 +87,70 @@ def ex3():
                                       [-0.168, -0.331, 0.500]])
 
     # Przekształcenie obrazu
-    processed_img = np.dot(original, transformation_matrix.T)
+    processed_img = np.dot(img, transformation_matrix.T)
     processed_img += add_matrix
+
+    return processed_img
+
+def ex3():
+    inFilename = 'lab1\\ex3\\original_kitty.jpg'
+
+    original = cv2.imread(inFilename)
+    original = cv2.cvtColor(original, cv2.COLOR_BGR2RGB)
+
+    processed_img = get_YCbCr(original)
+
+    # Konwersja z powrotem do skali 0-255
+    img = cv2.cvtColor(original, cv2.COLOR_YCR_CB2BGR)
+
+    fig, ax = plt.subplots(2,3)
+    ax[0, 0].imshow(original)
+    ax[0, 0].set_xlabel("Oryginal")
+    ax[0, 1].imshow(processed_img[:,:,0], cmap="Greys_r")
+    ax[0, 1].set_xlabel("Y")
+    ax[1, 0].imshow(processed_img[:,:,2], cmap="Greys_r")
+    ax[1, 0].set_xlabel("Cb")
+    ax[1, 1].imshow(processed_img[:,:,1], cmap="Greys_r")
+    ax[1, 1].set_xlabel("Cr")
+    ax[0, 2].imshow(img)
+    ax[0, 2].set_xlabel("Reversed")
+
+    plt.show()
+
+    return
+
+def ex4():
+    original = cv2.imread('lab1\\ex4\\original_kitty.jpg')
+    original = cv2.cvtColor(original, cv2.COLOR_BGR2RGB)
+    processed_img = get_YCbCr(original)
+    Y=[]
+    Cr=[]
+    Cb=[]
+
+    # Operacja downsamplingu Cb i Cr
+    for x in range(0, len(processed_img)):
+        for y in range(0, len(processed_img[0])):
+            Y.append(processed_img[x][y][0])
+            if x%2==0 and y%2==0:
+                Cr.append(processed_img[x][y][1])
+                Cb.append(processed_img[x][y][2])
+
+    CbUp = []
+    CrUp = []
+    Cbindex=-1
+    Crindex=-1
+
+    # Operacja upsamplingu Cb i Cr
+    for x in range(0, len(processed_img)):
+        for y in range(0, len(processed_img[0])):
+            if x%2==0 and y%2==0:
+                Cbindex+=1
+                Crindex+=1
+            CbUp.append(Cb[Cbindex])
+            CrUp.append(Cr[Crindex])
+                
+    processed_img[:,:,1] = np.array(CrUp).reshape(len(processed_img), len(processed_img[0]))
+    processed_img[:,:,2] = np.array(CbUp).reshape(len(processed_img), len(processed_img[0]))
 
     fig, ax = plt.subplots(2,2)
     ax[0, 0].imshow(original)
@@ -106,14 +164,40 @@ def ex3():
 
     plt.show()
 
-    return
-
-def ex4():
-    print('zad4')
-    return
+    return processed_img, processed_img[:,:,0], Cb, Cr, processed_img[:,:,0], processed_img[:,:,1], processed_img[:,:,2]
 
 def ex5():
-    print('zad5')
+    original = cv2.imread('lab1\\ex4\\original_kitty.jpg') 
+    image, Y, Cb, Cr, newY, newCb, newCr = ex4()
+
+    MSE_RGB = 0
+    MSE_Y = 0
+    MSE_Cr = 0
+    MSE_Cb = 0
+    counter = 0
+    index = 0
+
+    for x in range(0, len(original)):
+        for y in range(0, len(original[0])):
+            MSE_RGB += (float(original[x][y][0])-float(image[x][y][0]))**2 
+            MSE_RGB += (float(original[x][y][1])-float(image[x][y][1]))**2
+            MSE_RGB += (float(original[x][y][2])-float(image[x][y][2]))**2
+            MSE_Y += (float(Y[x][y])-float(newY[x][y]))**2
+            MSE_Cr += (float(Cb[index])-float(newCb[x][y]))**2
+            MSE_Cb += (float(Cr[index])-float(newCr[x][y]))**2
+            counter += 1
+            if counter == 4:
+                counter = 0
+                index += 1
+    pixels = len(original) * len(original[0])
+    MSE_RGB /= pixels*3
+    MSE_Y /= pixels
+    MSE_Cr /= pixels
+    MSE_Cb /= pixels
+    print("Mean square error between images: " + str(MSE_RGB))
+    print("Mean square error between images (channel Y): " + str(MSE_Y))
+    print("Mean square error between images (channel Cb): " + str(MSE_Cb))
+    print("Mean square error between images (channel Cr): " + str(MSE_Cr))
     return
 
 
