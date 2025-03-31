@@ -6,9 +6,10 @@
 
 
 
-#import cv2
-#import numpy as np
-#from matplotlib import pyplot as plt
+import cv2
+import numpy as np
+from matplotlib import pyplot as plt
+import os
 
 def Menu():
     print('Menu:')
@@ -19,7 +20,28 @@ def Menu():
 
 
 def ex1():
+    inFilename = 'imgs\\original_kitty.jpg'
+
+    original = cv2.imread(inFilename)
+    original = cv2.cvtColor(original, cv2.COLOR_BGR2RGB)
+
+    array = np.asarray(original)
+
+    height = len(array)
+    width = len(array[0])
     
+    ppm_ascii_header = ('P3\n%d %d\n255\n')%(width, height) 
+    ppm_binary_header = ('P6\n%d %d\n255\n')%(width, height)
+
+    with open('imgs\\ex1\\asciiPPM.ppm', 'w') as fh:
+        fh.write(ppm_ascii_header)
+        array.tofile(fh, sep=' ')
+        fh.write('\n')
+
+    with open('imgs\\ex1\\binaryPPM.ppm', 'wb') as fh:
+        fh.write(bytearray(ppm_binary_header, 'ascii'))
+        array.tofile(fh)
+
     return
 
 def ex2():
@@ -42,7 +64,7 @@ def ex5():
 
 
 
-#plt.rcParams["figure.figsize"] = (3, 4)
+plt.rcParams["figure.figsize"] = (3, 4)
 
 while True:
     Menu()
