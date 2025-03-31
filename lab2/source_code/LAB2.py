@@ -90,7 +90,60 @@ def ex1():
     return
 
 def ex2():
+    header = ('P3\n%d %d\n255\n')%(120, 8)
+    divider = 15
+
+    step = np.array([0, 0, 0], dtype=np.uint8)
+    image = np.array([0, 0, 0], dtype=np.uint8)
+
+    # to blue
+    for i in range(0,17):
+        step[2] += divider
+        image = np.append(image, step)
+
+    # to cyjan
+    for i in range(0,17):
+        step[1] += divider
+        image = np.append(image, step)
+
+    # to green
+    for i in range(0,17):
+        step[2] -= divider
+        image = np.append(image, step)
+
+    # to yellow
+    for i in range(0,17):
+        step[0] += divider
+        image = np.append(image, step)
     
+    # to red
+    for i in range(0,17):
+        step[1] -= divider
+        image = np.append(image, step)
+
+    # to magenta
+    for i in range(0,17):
+        step[2] += divider
+        image = np.append(image, step)
+
+    # to white
+    for i in range(0,17):
+        step[1] += divider
+        image = np.append(image, step)
+
+    image = np.append(image, image)
+    image = np.append(image, image)
+    image = np.append(image, image)
+
+    filename = 'imgs\\ex2\\output.ppm'
+    with open(filename, 'w') as fh:
+        fh.write(header)
+        image.tofile(fh, sep=' ')
+        fh.write('\n')
+
+    image_from_file = cv2.imread(filename)
+    plt.imshow(cv2.cvtColor(image_from_file, cv2.COLOR_BGR2RGB))
+    plt.show()
     return
 
 def ex3():
