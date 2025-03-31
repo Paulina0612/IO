@@ -1,14 +1,3 @@
-'''
-
-sprawozdanie
-wszystko w jednym katalogu
-
-piec opisow pieciu zadan
-teoria - wszystkie filtry, opisac rozne kolorystyki, 
-
-
-'''
-
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
