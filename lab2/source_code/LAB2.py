@@ -1,11 +1,3 @@
-'''
-
-na za tydzien 4 pierwsze zadania 
-
-'''
-
-
-
 import struct
 import zlib
 import cv2
@@ -16,11 +8,10 @@ import os
 
 def Menu():
     print('Menu:')
-    for i in range(1, 6):
+    for i in range(1, 5):
         print(i, '. Exercise ', i)
     print('0. Exit')
     return
-
 
 def writeASCII(header, filename, array):
     with open(filename, 'w') as fh:
@@ -141,7 +132,6 @@ def ex2():
 
     img = np.array([0], dtype=np.uint8) 
     img = np.append(img, image)
-    print(img)
 
     filename = 'lab2\\source_code\\imgs\\ex2\\output.ppm'
     with open(filename, 'w') as fh:
@@ -193,16 +183,6 @@ def ex3():
     
     return
 
-def ex4():
-    
-    return 
-
-def ex5():
-    
-    return
-
-
-
 
 
 plt.rcParams["figure.figsize"] = (3, 4)
@@ -221,10 +201,6 @@ while True:
         plt.show()
     elif opt == '3':
         ex3()
-    elif opt == '4':
-        ex4()
-    elif opt == '5':
-        ex5()
     elif opt == '0':
         break
     else:
