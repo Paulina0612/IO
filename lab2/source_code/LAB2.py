@@ -1,11 +1,13 @@
 '''
 
-
+na za tydzien 4 pierwsze zadania 
 
 '''
 
 
 
+import struct
+import zlib
 import cv2
 import os
 import numpy as np
@@ -131,23 +133,64 @@ def ex2():
         step[1] += divider
         image = np.append(image, step)
 
+    line = np.copy(image)
+    img = np.array([0], dtype=np.uint8)
     image = np.append(image, image)
     image = np.append(image, image)
     image = np.append(image, image)
 
-    filename = 'imgs\\ex2\\output.ppm'
+    img = np.array([0], dtype=np.uint8) 
+    img = np.append(img, image)
+    print(img)
+
+    filename = 'lab2\\source_code\\imgs\\ex2\\output.ppm'
     with open(filename, 'w') as fh:
         fh.write(header)
         image.tofile(fh, sep=' ')
         fh.write('\n')
 
-    image_from_file = cv2.imread(filename)
-    plt.imshow(cv2.cvtColor(image_from_file, cv2.COLOR_BGR2RGB))
-    plt.show()
-    return
+    return line
 
 def ex3():
+    # Image data
+    line = ex2()
+    image = np.array([0], dtype=np.uint8)
+    image = np.append(image, line)
+    image = np.append(image, image)
+    image = np.append(image, image)
+    image = np.append(image, image)
 
+    # Signature
+    png_file_signature = b'\x89PNG\r\n\x1a\n' 
+
+    # Header
+    header_id = b'IHDR' 
+    header_content = b'\x00\x00\x00\x78\x00\x00\x00\x08\x08\x02\x00\x00\x00' 
+    header_size = struct.pack('!I', len(header_content))  
+    header_crc = struct.pack('!I', zlib.crc32(header_id + header_content)) 
+    png_file_header = header_size + header_id + header_content + header_crc
+
+    # Data
+    data_id = b'IDAT'  
+    data_content = zlib.compress(image,0)  
+    data_size = struct.pack('!I', len(data_content))  
+    data_crc = struct.pack('!I', zlib.crc32(data_id + data_content))  
+    png_file_data = data_size + data_id + data_content + data_crc
+
+    # End
+    end_id = b'IEND'
+    end_content = b''
+    end_size = struct.pack('!I', len(end_content))
+    end_crc = struct.pack('!I', zlib.crc32(end_id + end_content))
+    png_file_end = end_size + end_id + end_content + end_crc
+
+    # Save the PNG image as a binary file
+    with open('lab4.png', 'wb') as fh:
+        fh.write(png_file_signature)
+        fh.write(png_file_header)
+        fh.write(png_file_data)
+        fh.write(png_file_end)
+    
     return
 
 def ex4():
@@ -172,6 +215,10 @@ while True:
         ex1()
     elif opt == '2':
         ex2()
+        filename = 'lab2\\source_code\\imgs\\ex2\\output.ppm'
+        image_from_file = cv2.imread(filename)
+        plt.imshow(cv2.cvtColor(image_from_file, cv2.COLOR_BGR2RGB))
+        plt.show()
     elif opt == '3':
         ex3()
     elif opt == '4':
