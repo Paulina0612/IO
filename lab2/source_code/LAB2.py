@@ -8,7 +8,7 @@ import os
 
 def Menu():
     print('Menu:')
-    for i in range(1, 5):
+    for i in range(1, 4):
         print(i, '. Exercise ', i)
     print('0. Exit')
     return
@@ -175,11 +175,17 @@ def ex3():
     png_file_end = end_size + end_id + end_content + end_crc
 
     # Save the PNG image as a binary file
-    with open('lab4.png', 'wb') as fh:
+    with open('img.png', 'wb') as fh:
         fh.write(png_file_signature)
         fh.write(png_file_header)
         fh.write(png_file_data)
         fh.write(png_file_end)
+        
+        
+    filename = 'imgs\\ex3\\img.png'
+    image_from_file = cv2.imread(filename)
+    plt.imshow(cv2.cvtColor(image_from_file, cv2.COLOR_BGR2RGB))
+    plt.show()
     
     return
 
