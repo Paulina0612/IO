@@ -606,6 +606,11 @@ def ex3_a():
     return
 
 
+def mse(imageA, imageB):
+    """Calculate the mean squared error between two images."""
+    # The 'mean' function calculates the mean of the squared differences
+    return np.mean((imageA.astype("float") - imageB.astype("float")) ** 2)
+
 def ex3_b():
     lorem = TextLorem(srange=(2000, 2000))
     message = lorem.sentence()
@@ -613,6 +618,7 @@ def ex3_b():
     binary = encode_as_binary_array(message)
     n = 1
     images_with_message = [None] * 8
+    mse_values = [None] * 8
 
     while n < 9:
         images_with_message[n-1] = hide_message(original_image, binary, n) 
@@ -621,10 +627,7 @@ def ex3_b():
         save_image('imgs\\ex3\\kitty_with_message_%d.png'%(n), images_with_message[n-1])
         
         image_with_message_png = load_image('imgs\\ex3\\kitty_with_message_%d.png'%(n))
-        # Wczytanie obrazka PNG
-        secret_message_png = decode_from_binary_array(
-            reveal_message(image_with_message_png, nbits=n,
-                length=len(binary))) # Odczytanie ukrytej wiadomości z PNG
+        mse_values[n-1] = mse(original_image, image_with_message_png)
         
         n += 1
     
@@ -650,13 +653,28 @@ def ex3_b():
     ar[2,3].set_title("Image with nbits=8")
     plt.show()
 
+    return mse_values
+
+def ex3_c(mse:list):
+    plt.plot(range(1,9), mse)
+    plt.title('MSE to nbits')
+    plt.ylabel('MSE')
+    plt.xlabel('Number of bits')
+    plt.show()
     return
+
 
 def ex3():
     print("a)")
     ex3_a()
     print("b)")
-    ex3_b()
+    mse = ex3_b()
+    print("c)")
+    print("MSE values:")
+    for i in range(8):
+        print("MSE for nbits=%d: %f" % (i+1, mse[i]))
+    print("d)")
+    ex3_c(mse)
     return
 
 def ex4():
@@ -673,7 +691,7 @@ def ex6():
 
 
 
-plt.rcParams["figure.figsize"] = (3, 4)
+plt.rcParams["figure.figsize"] = (6, 4)
 
 while True:
     Menu()
