@@ -1,15 +1,12 @@
 import binascii
 import math
-import struct
 import zlib
 import cv2
-import os
 import numpy as np
 from matplotlib import pyplot as plt
 import os
 from scipy.fftpack import dct
 from scipy.fftpack import idct
-import lorem
 from lorem.text import TextLorem
 
 def Menu():
@@ -705,8 +702,61 @@ def ex4():
     print("Secret message from PNG: ", secret_message_png)
     return
 
+
+def hide_image(image, secret_image_path, nbits=1):
+    with open(secret_image_path, "rb") as file:
+        secret_img = file.read()
+    secret_img = secret_img.hex()
+    secret_img = [secret_img[i:i + 2] for i in range(0,
+    len(secret_img), 2)]
+    secret_img = ["{:08b}".format(int(el, base=16)) for el in
+    secret_img]
+    secret_img = "".join(secret_img)
+    return hide_message(image, secret_img, nbits), len(secret_img)
+
+
+def reveal_image(image, length, nbits=1):
+    """Odzyskaj obraz z zakodowanego obrazu."""
+    # Krok 1: odzyskaj ciąg binarny z ukrytego obrazu
+    binary_data = reveal_message(image, length=length, nbits=nbits)
+
+    # Krok 2: Podziel dane binarne na bajty (8-bitowe fragmenty)
+    bytes_list = [binary_data[i:i+8] for i in range(0, len(binary_data), 8)]
+
+    # Krok 3: Konwersja binarnego ciągu na bajty
+    byte_values = bytearray(int(b, 2) for b in bytes_list)
+
+    # Krok 4: Konwersja bajtów do tablicy numpy i próba odczytania obrazu
+    image_array = np.frombuffer(byte_values, dtype=np.uint8)
+
+    try:
+        # Przypuszczenie: obraz RGB
+        decoded_image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+        decoded_image = cv2.cvtColor(decoded_image, cv2.COLOR_BGR2RGB)
+    except:
+        print("Nie udało się odczytać ukrytego obrazu.")
+        return None
+
+    return decoded_image
+
+
 def ex5():
+    original_image = load_image('imgs\\ex5\\original_kitty.png')
+    secret_image_path = 'imgs\\ex5\\secret_kitty.png'
+    n = 1
+    image_with_message, length = hide_image(original_image, secret_image_path, n)
+    save_image('imgs\\ex5\\kitty_with_message.png', image_with_message)
+
+    image = reveal_image(image_with_message, length, nbits=n)
+    
+    f, ar = plt.subplots(1,2)
+    ar[0].imshow(original_image)
+    ar[0].set_title("Original image")
+    ar[1].imshow(image)
+    ar[1].set_title("Hidden image")
+    plt.show()
     return
+
 
 def ex6():
     return
