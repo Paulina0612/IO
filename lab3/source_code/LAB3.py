@@ -1,3 +1,5 @@
+import binascii
+import math
 import struct
 import zlib
 import cv2
@@ -292,9 +294,9 @@ def ex1():
     comp2 = zlib.compress(im2, 0)
     comp4 = zlib.compress(im4, 0)
 
-    print("Rozmiar bez próbkowania: " + str(len(comp0)))
-    print("Rozmiar z próbkowaniem co drugi element: " + str(len(comp2)))
-    print("Rozmiar z próbkowaniem co czwarty element: " + str(len(comp4)))
+    print("Without sampling: " + str(len(comp0)))
+    print("Sampling every 2nd element: " + str(len(comp2)))
+    print("Sampling every 4th element: " + str(len(comp4)))
 
         # 5'. Dequantize: multiply blocks by quantization matrix to restore original DCT scale
     mulY, mul0Cr, mul0Cb, mul2Cr, mul2Cb, mul4Cr, mul4Cb = [], [], [], [], [], [], []
@@ -451,11 +453,121 @@ def ex1():
     return
 
 
-    return
+
+
+def encode_as_binary_array(msg):
+    """Encode a message as a binary string."""
+    msg = msg.encode("utf-8")
+    msg = msg.hex()
+    msg = [msg[i:i + 2] for i in range(0, len(msg), 2)]
+    msg = [ "{:08b}".format(int(el, base=16)) for el in msg]
+    return "".join(msg)
+
+def decode_from_binary_array(binary_str):
+    """Decode a binary string to UTF-8."""
+    # Split binary string into 8-bit chunks
+    byte_chunks = [binary_str[i:i+8] for i in range(0, len(binary_str), 8)]
+
+    # Pad the last chunk if it's not 8 bits
+    if len(byte_chunks[-1]) != 8:
+        byte_chunks[-1] = byte_chunks[-1].ljust(8, '0')
+
+    # Convert each chunk to hexadecimal
+    hex_str = "".join("{:02x}".format(int(b, 2)) for b in byte_chunks)
+
+    # Convert hex string to bytes, then decode
+    result = binascii.unhexlify(hex_str)
+    return result.decode("utf-8", errors="replace")
+
+def load_image(path, pad=False):
+    """Load an image.
+    If pad is set then pad an image to multiple of 8 pixels.
+    """
+    image = cv2.imread(path)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    if pad:
+        y_pad = 8 - (image.shape[0] % 8)
+        x_pad = 8 - (image.shape[1] % 8)
+        image = np.pad(
+            image, ((0, y_pad), (0, x_pad) ,(0, 0)), mode='constant')
+    return image
+
+def save_image(path, image):
+    """Save an image."""
+    plt.imsave(path, image)
+
+def clamp(n, minn, maxn):
+    """Clamp the n value to be in range (minn, maxn)."""
+    return max(min(maxn, n), minn)
+
+def hide_message(image, message, nbits=1):
+    """Hide a message in an image (LSB).
+    nbits: number of least significant bits
+    """
+    nbits = clamp(nbits, 1, 8)
+    shape = image.shape
+    image = np.copy(image).flatten()
+    if len(message) > len(image) * nbits:
+        raise ValueError("Message is to long :(")
+    chunks = [message[i:i + nbits] for i in range(0, len(message),
+    nbits)]
+    for i, chunk in enumerate(chunks):
+        byte = "{:08b}".format(image[i])
+        new_byte = byte[:-nbits] + chunk
+        image[i] = int(new_byte, 2)
+    return image.reshape(shape)
+
+def reveal_message(image, nbits=1, length=0):
+    """Reveal the hidden message.
+    nbits: number of least significant bits
+    length: length of the message in bits.
+    """
+    nbits = clamp(nbits, 1, 8)
+    shape = image.shape
+    image = np.copy(image).flatten()
+    length_in_pixels = math.ceil(length/nbits)
+    message = ""
+    i = 0
+    if len(image) < length_in_pixels or length_in_pixels <= 0:
+        length_in_pixels = len(image)
+    while i < length_in_pixels:
+        byte = "{:08b}".format(image[i])
+        message += byte[-nbits:]
+        i += 1
+        mod = length % -nbits
+    if mod != 0:
+        message = message[:mod]
+    return message
 
 
 def ex2():
+    original_image = load_image('imgs\\ex2\\original_kitty.png')
+    message = "Canvas"
+    binary = encode_as_binary_array(message)
+    n = 1
+    image_with_message = hide_message(original_image, binary, n) 
+    save_image('imgs\\ex2\\kitty_with_message.png', image_with_message)
+    
+    image_with_message_png = load_image("imgs\\ex2\\kitty_with_message.png")
+    # Wczytanie obrazka PNG
+    secret_message_png = decode_from_binary_array(
+        reveal_message(image_with_message_png, nbits=n,
+            length=len(binary))) # Odczytanie ukrytej wiadomości z PNG
+    
+    print("Secret message from PNG: ", secret_message_png)
+    
+    # Wyświetlenie obrazków
+    f, ar = plt.subplots(2,2)
+    ar[0,0].imshow(original_image)
+    ar[0,0].set_title("Original image")
+    ar[0,1].imshow(image_with_message)
+    ar[0,1].set_title("Image with message")
+    ar[1,0].imshow(image_with_message_png)
+    ar[1,0].set_title("PNG image")
+    plt.show()
+
     return
+
 
 def ex3():
     return
