@@ -502,46 +502,55 @@ def clamp(n, minn, maxn):
     """Clamp the n value to be in range (minn, maxn)."""
     return max(min(maxn, n), minn)
 
-def hide_message(image, message, nbits=1):
+def hide_message(image, message, nbits=1, spos=0):
     """Hide a message in an image (LSB).
     nbits: number of least significant bits
+    spos: start position (in pixels) to hide the message
     """
     nbits = clamp(nbits, 1, 8)
     shape = image.shape
     image = np.copy(image).flatten()
-    
-    if len(message) > len(image) * nbits:
-        #raise ValueError("Message is to long :(")
+
+    if len(message) > (len(image) - spos) * nbits:
         print("Message is too long :(")
         return None
-    chunks = [message[i:i + nbits] for i in range(0, len(message),
-    nbits)]
+
+    chunks = [message[i:i + nbits] for i in range(0, len(message), nbits)]
+
     for i, chunk in enumerate(chunks):
-        byte = "{:08b}".format(image[i])
+        index = spos + i
+        byte = "{:08b}".format(image[index])
         new_byte = byte[:-nbits] + chunk
-        image[i] = int(new_byte, 2)
+        image[index] = int(new_byte, 2)
+
     return image.reshape(shape)
 
-def reveal_message(image, nbits=1, length=0):
+
+def reveal_message(image, nbits=1, length=0, spos=0):
     """Reveal the hidden message.
     nbits: number of least significant bits
     length: length of the message in bits.
+    spos: start position (in pixels) to begin revealing the message
     """
     nbits = clamp(nbits, 1, 8)
     shape = image.shape
     image = np.copy(image).flatten()
-    length_in_pixels = math.ceil(length/nbits)
+
+    length_in_pixels = math.ceil(length / nbits)
     message = ""
-    i = 0
-    if len(image) < length_in_pixels or length_in_pixels <= 0:
-        length_in_pixels = len(image)
-    while i < length_in_pixels:
-        byte = "{:08b}".format(image[i])
+
+    if spos + length_in_pixels > len(image) or length_in_pixels <= 0:
+        length_in_pixels = len(image) - spos
+
+    for i in range(length_in_pixels):
+        index = spos + i
+        byte = "{:08b}".format(image[index])
         message += byte[-nbits:]
-        i += 1
-        mod = length % -nbits
+
+    mod = length % -nbits
     if mod != 0:
         message = message[:mod]
+
     return message
 
 
@@ -677,7 +686,23 @@ def ex3():
     ex3_c(mse)
     return
 
+
 def ex4():
+    # Load the image
+    image = load_image('imgs\\ex2\\original_kitty.png')
+    message = "Canvas"
+    binary = encode_as_binary_array(message)
+    n = 1
+    spos = 10
+    image_with_message = hide_message(image, binary, n, spos)
+    save_image('imgs\\ex4\\kitty_with_message.png', image_with_message)
+
+    image_with_message_png = load_image("imgs\\ex4\\kitty_with_message.png")
+    # Wczytanie obrazka PNG
+    secret_message_png = decode_from_binary_array(
+        reveal_message(image_with_message_png, nbits=n,
+            length=len(binary), spos=spos)) # Odczytanie ukrytej wiadomości z PNG
+    print("Secret message from PNG: ", secret_message_png)
     return
 
 def ex5():
