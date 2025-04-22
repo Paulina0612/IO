@@ -9,13 +9,15 @@ from matplotlib import pyplot as plt
 import os
 from scipy.fftpack import dct
 from scipy.fftpack import idct
+import lorem
+from lorem.text import TextLorem
 
 def Menu():
     print('Menu:')
     for i in range(1, 2):
         print(('%d. Exercise %d List %d')%(i, i, 1))
-    for i in range(3, 8):
-        print(('%d. Exercise %d List %d')%(i, i-2, 2))
+    for i in range(2, 7):
+        print(('%d. Exercise %d List %d')%(i, i-1, 2))
     print('0. Exit')
     return
 
@@ -507,8 +509,11 @@ def hide_message(image, message, nbits=1):
     nbits = clamp(nbits, 1, 8)
     shape = image.shape
     image = np.copy(image).flatten()
+    
     if len(message) > len(image) * nbits:
-        raise ValueError("Message is to long :(")
+        #raise ValueError("Message is to long :(")
+        print("Message is too long :(")
+        return None
     chunks = [message[i:i + nbits] for i in range(0, len(message),
     nbits)]
     for i, chunk in enumerate(chunks):
@@ -569,7 +574,89 @@ def ex2():
     return
 
 
+def ex3_a():
+    lorem = TextLorem(srange=(194401, 194401))
+    message = lorem.sentence()
+    original_image = load_image('imgs\\ex2\\original_kitty.png')
+    binary = encode_as_binary_array(message)
+    n = 1
+    image_with_message = hide_message(original_image, binary, n) 
+    if(image_with_message is None):
+        return
+    save_image('imgs\\ex3\\kitty_with_message.png', image_with_message)
+    
+    image_with_message_png = load_image("imgs\\ex3\\kitty_with_message.png")
+    # Wczytanie obrazka PNG
+    secret_message_png = decode_from_binary_array(
+        reveal_message(image_with_message_png, nbits=n,
+            length=len(binary))) # Odczytanie ukrytej wiadomości z PNG
+    
+    print("Secret message from PNG: ", secret_message_png)
+    
+    # Wyświetlenie obrazków
+    f, ar = plt.subplots(2,2)
+    ar[0,0].imshow(original_image)
+    ar[0,0].set_title("Original image")
+    ar[0,1].imshow(image_with_message)
+    ar[0,1].set_title("Image with message")
+    ar[1,0].imshow(image_with_message_png)
+    ar[1,0].set_title("PNG image")
+    plt.show()
+
+    return
+
+
+def ex3_b():
+    lorem = TextLorem(srange=(2000, 2000))
+    message = lorem.sentence()
+    original_image = load_image('imgs\\ex2\\original_kitty.png')
+    binary = encode_as_binary_array(message)
+    n = 1
+    images_with_message = [None] * 8
+
+    while n < 9:
+        images_with_message[n-1] = hide_message(original_image, binary, n) 
+        if(images_with_message[n-1] is None):
+            return
+        save_image('imgs\\ex3\\kitty_with_message_%d.png'%(n), images_with_message[n-1])
+        
+        image_with_message_png = load_image('imgs\\ex3\\kitty_with_message_%d.png'%(n))
+        # Wczytanie obrazka PNG
+        secret_message_png = decode_from_binary_array(
+            reveal_message(image_with_message_png, nbits=n,
+                length=len(binary))) # Odczytanie ukrytej wiadomości z PNG
+        
+        n += 1
+    
+    # Wyświetlenie obrazków
+    f, ar = plt.subplots(3,4)
+    ar[0,0].imshow(original_image)
+    ar[0,0].set_title("Original image")
+    ar[1,0].imshow(images_with_message[0])
+    ar[1,0].set_title("Image with nbits=1")
+    ar[1,1].imshow(images_with_message[1])
+    ar[1,1].set_title("Image with nbits=2")
+    ar[1,2].imshow(images_with_message[2])
+    ar[1,2].set_title("Image with nbits=3")
+    ar[1,3].imshow(images_with_message[3])
+    ar[1,3].set_title("Image with nbits=4")
+    ar[2,0].imshow(images_with_message[4])
+    ar[2,0].set_title("Image with nbits=5")
+    ar[2,1].imshow(images_with_message[5])
+    ar[2,1].set_title("Image with nbits=6")
+    ar[2,2].imshow(images_with_message[6])
+    ar[2,2].set_title("Image with nbits=7")
+    ar[2,3].imshow(images_with_message[7])
+    ar[2,3].set_title("Image with nbits=8")
+    plt.show()
+
+    return
+
 def ex3():
+    print("a)")
+    ex3_a()
+    print("b)")
+    ex3_b()
     return
 
 def ex4():
